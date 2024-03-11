@@ -1,41 +1,72 @@
 <template>
-  <div>
-    <h5>{{ res?.data }}</h5>
-    <ul>
-      <li v-for="message in messages" :key="message._id">
-        {{ message.text }}
-      </li>
-    </ul>
-  </div>
+  <v-app>
+    <v-main>
+      <v-container>
+        <v-layout row wrap>
+          <RoomList @selectRoom="handleRoomSelection" />
+          <ChatArea
+            :selectedRoom="selectedRoom"
+            :messages="messages"
+            @sendMessage="sendMessage"
+          />
+        </v-layout>
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
+import RoomList from "./components/RoomList.vue";
+import ChatArea from "./components/ChatArea.vue";
 import axios from "axios";
-import io from "socket.io-client";
+
+const apiClient = axios.create({
+  baseURL: "http://127.0.0.1:3000",
+});
 
 export default {
   name: "HomeE",
+  components: {
+    RoomList,
+    ChatArea,
+  },
   data() {
     return {
       res: null,
+
+      selectedRoom: 1,
       messages: [],
     };
   },
-  async mounted() {
-    // Fetch initial data from the backend
-    this.res = await axios.get("http://127.0.0.1:3000/api/v1/chats/");
-    console.log(this.res.data);
-
-    // Connect to Socket.IO server
-    const socket = io("http://localhost:3000", { transports: ["websocket"] }); // Replace with your Socket.IO server URL
-
-    // Listen for "message" event from Socket.IO server
-    socket.on("message", (data) => {
-      // Add received message to the messages array
-      this.messages.push(data);
+  mounted() {
+    this.fetchData();
+    this.$socket.emit("joinRoom", this.selectedRoom);
+    this.$socket.on("getData", (data) => {
+      console.log("run", data);
+      this.messages = data;
     });
+  },
+  methods: {
+    async fetchData() {
+      try {
+        let data = await apiClient.get("/");
+        this.res = data.data;
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    },
+    handleRoomSelection(room) {
+      this.selectedRoom = room;
+      this.$socket.emit("joinRoom", this.selectedRoom);
+    },
 
-    // Handle successful response
+    sendMessage(message) {
+      if (message.trim() !== "") {
+        let msg = { text: message };
+        this.messages.push(msg);
+        this.$socket.emit("storeChats", msg);
+      }
+    },
   },
 };
 </script>
