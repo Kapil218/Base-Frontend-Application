@@ -2,8 +2,13 @@
   <v-app>
     <v-main>
       <v-container>
-        <v-layout row wrap>
-          <RoomList @selectRoom="handleRoomSelection" />
+        <v-layout row wrap justify-center>
+          <RoomList
+            :rooms="rooms"
+            @createRoom="createRoom"
+            @selectRoom="selectRoom"
+          />
+
           <ChatArea
             :selectedRoom="selectedRoom"
             :messages="messages"
@@ -33,40 +38,63 @@ export default {
   data() {
     return {
       res: null,
-
-      selectedRoom: 1,
+      selectedRoom: null,
+      rooms: [],
       messages: [],
     };
   },
-  mounted() {
+  created() {
+    // Fetch initial data
     this.fetchData();
-    this.$socket.emit("joinRoom", this.selectedRoom);
+
+    // Listen for available rooms and initial messages
+    this.$socket.on("avlRooms", (data) => {
+      this.rooms = data;
+    });
     this.$socket.on("getData", (data) => {
-      console.log("run", data);
       this.messages = data;
     });
   },
   methods: {
+    createRoom(room) {
+      this.$socket.emit("createRoom", room);
+    },
+    selectRoom(roomId) {
+      this.selectedRoom = roomId;
+      // Emit room selection change
+      this.$socket.emit("joinRoom", roomId);
+    },
+    sendMessage(message) {
+      // Emit new message to the server
+      const data = { text: message, roomId: this.selectedRoom };
+      this.$socket.emit("storeChats", data);
+    },
     async fetchData() {
       try {
-        let data = await apiClient.get("/");
-        this.res = data.data;
+        const response = await apiClient.get("/");
+        this.res = response.data;
       } catch (error) {
         console.error("Error fetching data:", error);
-      }
-    },
-    handleRoomSelection(room) {
-      this.selectedRoom = room;
-      this.$socket.emit("joinRoom", this.selectedRoom);
-    },
-
-    sendMessage(message) {
-      if (message.trim() !== "") {
-        let msg = { text: message };
-        this.messages.push(msg);
-        this.$socket.emit("storeChats", msg);
       }
     },
   },
 };
 </script>
+
+<style scoped>
+/* Add custom styles here */
+/* Center the content horizontally */
+.container {
+  display: flex;
+  justify-content: center;
+}
+
+/* Add margin to the components */
+.room-list {
+  margin-right: 20px;
+}
+
+.chat-area {
+  margin-left: 20px;
+}
+</style>
