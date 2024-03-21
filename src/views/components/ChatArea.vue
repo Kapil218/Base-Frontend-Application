@@ -1,17 +1,57 @@
 <template>
   <v-flex xs12 md9>
-    <v-card class="elevation-2 chat-area-card">
-      <v-card-title class="text-center" style="border-bottom: 1px solid black">
-        {{ selectedRoom ? "Room " + selectedRoom : "Select a room" }}
+    <v-card v-if="selectedRoom" class="elevation-0 chat-area-card">
+      <v-card-title class="mb-4" style="border-bottom: 1px solid black">
+        {{ selectedRoom }}
       </v-card-title>
-      <v-card-text class="message-list">
+      <v-card-text class="message-list" ref="messageContainer">
         <v-list dense>
           <v-list-item v-for="(message, index) in messages" :key="index">
-            <v-list-item-subtitle class="message-text"
-              ><v-chip style="background: #c2e6f7">{{
-                message.text
-              }}</v-chip></v-list-item-subtitle
+            <v-list-item-subtitle
+              v-if="getUser() == message.chat.user"
+              class="message-text text-right"
             >
+              <div
+                class="py-3 my-1"
+                style="
+                  background: white;
+                  border-radius: 6px;
+                  display: inline-block;
+                  max-width: 70%;
+                "
+              >
+                <p class="mb-0 px-2 text-right" style="font-size: 1rem">
+                  {{ message.chat.text }}
+                  <span class="#F8BBD0--text pl-5" style="font-size: 10px">
+                    {{ message.chat.timeStamp.time }}
+                  </span>
+                </p>
+              </div>
+            </v-list-item-subtitle>
+            <v-list-item-subtitle v-else class="message-text">
+              <div
+                class="py-1 px-2 my-1"
+                style="
+                  background: rgb(136, 186, 220);
+                  border-radius: 6px;
+                  display: inline-block;
+                  max-width: 70%;
+                "
+              >
+                <p
+                  class="mb-0 px-2 #F8BBD0--text"
+                  style="font-size: 10px; font-weight: bold"
+                >
+                  ~{{ message.chat.user }}
+                </p>
+                <p class="mb-0 pl-2 pt-1 pr-2" style="font-size: 1rem">
+                  {{ message.chat.text }}
+                  <span class="#F8BBD0--text pl-5" style="font-size: 10px">
+                    {{ message.chat.timeStamp.time }}
+                  </span>
+                </p>
+              </div>
+            </v-list-item-subtitle>
           </v-list-item>
         </v-list>
       </v-card-text>
@@ -20,13 +60,30 @@
           :disabled="!selectedRoom"
           v-model="newMessage"
           label="Type your message"
+          rounded
           outlined
           dense
           class="message-field"
           @keyup.enter="sendMessage"
         ></v-text-field>
-        <v-btn @click="sendMessage" color="primary">Send</v-btn>
+        <v-btn @click="sendMessage" color="primary" icon class="send-btn">
+          <v-icon>mdi-send</v-icon>
+        </v-btn>
       </v-card-actions>
+    </v-card>
+    <v-card v-else class="elevation-2 chat-area-card">
+      <v-card-text class="message-list d-flex align-center justify-center">
+        <!-- Adding flexbox classes -->
+        <div class="text-center">
+          <!-- Centering the content -->
+          <h1>Welcome to Chatify!</h1>
+          <br />
+          <div>
+            Join millions of users worldwide in experiencing the ultimate
+            chatting platform.
+          </div>
+        </div>
+      </v-card-text>
     </v-card>
   </v-flex>
 </template>
@@ -39,7 +96,22 @@ export default {
       newMessage: "",
     };
   },
+  watch: {
+    messages: {
+      handler() {
+        // Scroll to bottom after adding a new message
+        this.$nextTick(() => {
+          this.$refs.messageContainer.scrollTop =
+            this.$refs.messageContainer.scrollHeight;
+        });
+      },
+    },
+  },
+
   methods: {
+    getUser() {
+      return localStorage.getItem("user");
+    },
     sendMessage() {
       if (this.newMessage.trim() !== "") {
         this.$emit("sendMessage", this.newMessage);
@@ -52,17 +124,23 @@ export default {
 
 <style scoped>
 .chat-area-card {
+  border-radius: 0;
   width: 100%;
-  height: 100vh;
+  height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
+  background-color: rgb(213, 223, 230) !important;
 }
 
 .message-list {
   flex: 1;
   overflow-y: auto;
+  padding: 0;
 }
-
+.theme--light.v-list {
+  background-color: rgb(213, 223, 230) !important;
+  padding: 0;
+}
 .message-text {
   word-break: break-word;
 }
@@ -76,5 +154,14 @@ export default {
 .message-field {
   flex: 1;
   margin-right: 10px;
+}
+/* Customizing scrollbar */
+.message-list::-webkit-scrollbar {
+  width: 6px; /* Adjust the width of the scrollbar */
+}
+
+.message-list::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2); /* Adjust scrollbar thumb color */
+  border-radius: 3px;
 }
 </style>

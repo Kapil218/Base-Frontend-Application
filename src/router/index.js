@@ -1,6 +1,8 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import HomeView from "../views/HomeView.vue";
+import LoginView from "../views/LoginView.vue";
+import profileView from "../views/profileDialog.vue";
 
 Vue.use(VueRouter);
 
@@ -10,20 +12,37 @@ const routes = [
     name: "home",
     component: HomeView,
   },
-  // {
-  //   path: '/about',
-  //   name: 'about',
-  //   // route level code-splitting
-  //   // this generates a separate chunk (about.[hash].js) for this route
-  //   // which is lazy-loaded when the route is visited.
-  //   component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  // }
+  {
+    path: "/login",
+    name: "login",
+    component: LoginView,
+  },
+  {
+    path: "/p",
+    name: "p",
+    component: profileView,
+  },
 ];
 
 const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
   routes,
+});
+
+// Implement a global navigation guard
+router.beforeEach((to, from, next) => {
+  // Check if the user is not logged in and trying to access a protected route
+  if (!localStorage.getItem("user") && to.name !== "login") {
+    // Redirect to the login page
+    next({ name: "login" });
+  } else if (localStorage.getItem("user") && to.name === "login") {
+    // If user is logged in and trying to access the login page, redirect to home
+    next({ name: "home" });
+  } else {
+    // Allow navigation to proceed
+    next();
+  }
 });
 
 export default router;

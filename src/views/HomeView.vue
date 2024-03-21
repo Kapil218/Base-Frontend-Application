@@ -1,8 +1,18 @@
 <template>
   <v-app>
-    <v-main>
-      <v-container>
+    <v-main class="bg">
+      <v-container fluid>
         <v-layout row wrap justify-center>
+          <v-container fluid class="text-center pa-0 ma-0">
+            <v-row class="py-2"
+              ><v-col cols="7" class="text-right"
+                ><span class="#E3F2FD white--text text-h4">
+                  Chatify
+                </span></v-col
+              ><v-col cols="5" class="text-right pa-0 ma-0">
+                <profileDialogVue></profileDialogVue></v-col
+            ></v-row>
+          </v-container>
           <RoomList
             :rooms="rooms"
             @createRoom="createRoom"
@@ -23,7 +33,9 @@
 <script>
 import RoomList from "./components/RoomList.vue";
 import ChatArea from "./components/ChatArea.vue";
+
 import axios from "axios";
+import profileDialogVue from "./profileDialog.vue";
 
 const apiClient = axios.create({
   baseURL: "http://127.0.0.1:3000",
@@ -34,6 +46,7 @@ export default {
   components: {
     RoomList,
     ChatArea,
+    profileDialogVue,
   },
   data() {
     return {
@@ -44,9 +57,6 @@ export default {
     };
   },
   created() {
-    // Fetch initial data
-    this.fetchData();
-
     // Listen for available rooms and initial messages
     this.$socket.on("avlRooms", (data) => {
       this.rooms = data;
@@ -55,18 +65,57 @@ export default {
       this.messages = data;
     });
   },
+  mounted() {
+    // Fetch initial data after the component is mounted
+    this.fetchData();
+  },
   methods: {
-    createRoom(room) {
-      this.$socket.emit("createRoom", room);
+    createRoom(roomName) {
+      this.$socket.emit("createRoom", roomName);
     },
-    selectRoom(roomId) {
-      this.selectedRoom = roomId;
+    selectRoom(roomName) {
+      this.selectedRoom = roomName;
       // Emit room selection change
-      this.$socket.emit("joinRoom", roomId);
+      this.$socket.emit("joinRoom", roomName);
     },
     sendMessage(message) {
-      // Emit new message to the server
-      const data = { text: message, roomId: this.selectedRoom };
+      var currentDate = new Date();
+      var date = currentDate.getDate();
+      var monthIndex = currentDate.getMonth() + 1;
+      var year = currentDate.getFullYear();
+      var hours = currentDate.getHours();
+      var minutes = currentDate.getMinutes();
+      // Display the current date and time
+      var ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const monthNames = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const month = monthNames[monthIndex];
+      const data = {
+        chat: {
+          text: message,
+          user: localStorage.getItem("user"),
+          timeStamp: {
+            time: hours + ":" + minutes + " " + ampm,
+            date: date + " " + month + " " + year,
+          },
+        },
+        roomName: this.selectedRoom,
+      };
+
       this.$socket.emit("storeChats", data);
     },
     async fetchData() {
@@ -84,17 +133,12 @@ export default {
 <style scoped>
 /* Add custom styles here */
 /* Center the content horizontally */
-.container {
-  display: flex;
-  justify-content: center;
-}
 
-/* Add margin to the components */
-.room-list {
-  margin-right: 20px;
-}
-
-.chat-area {
-  margin-left: 20px;
+.bg {
+  background-image: linear-gradient(
+    to bottom right,
+    rgb(224, 224, 224),
+    rgb(58, 58, 58)
+  );
 }
 </style>
