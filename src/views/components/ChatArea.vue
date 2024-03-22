@@ -52,8 +52,8 @@
                 "
               >
                 <p
-                  class="mb-0 px-1 #F8BBD0--text"
-                  style="font-size: 10px; font-weight: bold"
+                  class="mb-0 pb-1 px-1 #F8BBD0--text"
+                  style="font-size: 10px; font-weight: bold; color: #e5ebebff"
                 >
                   ~{{ message.chat.user }}
                 </p>
