@@ -4,25 +4,27 @@
       <v-container fluid>
         <v-layout row wrap justify-center>
           <v-container fluid class="text-center pa-0 ma-0">
-            <v-row class="py-2"
-              ><v-col cols="7" class="text-right"
-                ><span class="#E3F2FD white--text text-h4">
-                  Chatify
-                </span></v-col
-              ><v-col cols="5" class="text-right pa-0 ma-0">
-                <profileDialogVue></profileDialogVue></v-col
-            ></v-row>
+            <v-row class="py-2" justify="space-between">
+              <v-col cols="5" class="text-right">
+                <span class="#E3F2FD white--text text-h4">Chatify</span>
+              </v-col>
+              <v-col cols="6" class="text-right pa-0 ma-0">
+                <profileDialogVue></profileDialogVue>
+              </v-col>
+            </v-row>
           </v-container>
           <RoomList
+            v-if="showGroups"
             :rooms="rooms"
             @createRoom="createRoom"
             @selectRoom="selectRoom"
           />
-
           <ChatArea
+            v-if="showChats"
             :selectedRoom="selectedRoom"
             :messages="messages"
             @sendMessage="sendMessage"
+            @showGroupsOnClick="showGroups = $event"
           />
         </v-layout>
       </v-container>
@@ -33,7 +35,6 @@
 <script>
 import RoomList from "./components/RoomList.vue";
 import ChatArea from "./components/ChatArea.vue";
-
 import axios from "axios";
 import profileDialogVue from "./profileDialog.vue";
 
@@ -51,6 +52,8 @@ export default {
   data() {
     return {
       res: null,
+      showChats: false,
+      showGroups: true,
       selectedRoom: null,
       rooms: [],
       messages: [],
@@ -68,6 +71,14 @@ export default {
   mounted() {
     // Fetch initial data after the component is mounted
     this.fetchData();
+    // Check screen size on mount
+    this.checkScreenSize();
+    // Add event listener for screen resize
+    window.addEventListener("resize", this.checkScreenSize);
+  },
+  destroyed() {
+    // Remove event listener on component destroy
+    window.removeEventListener("resize", this.checkScreenSize);
   },
   methods: {
     createRoom(roomName) {
@@ -75,6 +86,10 @@ export default {
     },
     selectRoom(roomName) {
       this.selectedRoom = roomName;
+      if (window.innerWidth < 600) {
+        this.showChats = true;
+        this.showGroups = false;
+      }
       // Emit room selection change
       this.$socket.emit("joinRoom", roomName);
     },
@@ -124,6 +139,12 @@ export default {
         this.res = response.data;
       } catch (error) {
         console.error("Error fetching data:", error);
+      }
+    },
+    checkScreenSize() {
+      if (window.innerWidth > 600) {
+        this.showChats = true;
+        this.showGroups = true;
       }
     },
   },

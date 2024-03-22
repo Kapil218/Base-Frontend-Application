@@ -1,7 +1,13 @@
 <template>
-  <v-flex xs12 md9>
+  <v-flex xs12 sm8 md8>
     <v-card v-if="selectedRoom" class="elevation-0 chat-area-card">
       <v-card-title class="mb-4" style="border-bottom: 1px solid black">
+        <v-icon
+          class="mr-4 d-flex d-sm-none"
+          style="cursor: pointer"
+          @click="showGroupsOnClick"
+          >mdi-arrow-left</v-icon
+        >
         {{ selectedRoom }}
       </v-card-title>
       <v-card-text class="message-list" ref="messageContainer">
@@ -9,10 +15,10 @@
           <v-list-item v-for="(message, index) in messages" :key="index">
             <v-list-item-subtitle
               v-if="getUser() == message.chat.user"
-              class="message-text text-right"
+              class="message-text text-right my-1"
             >
               <div
-                class="py-3 my-1"
+                class="pt-3 pb-1 my-1"
                 style="
                   background: white;
                   border-radius: 6px;
@@ -20,15 +26,22 @@
                   max-width: 70%;
                 "
               >
-                <p class="mb-0 px-2 text-right" style="font-size: 1rem">
+                <p
+                  class="mb-0 pr-10 pl-3"
+                  style="
+                    font-size: 1rem;
+                    display: inline-block;
+                    white-space: normal;
+                  "
+                >
                   {{ message.chat.text }}
-                  <span class="#F8BBD0--text pl-5" style="font-size: 10px">
-                    {{ message.chat.timeStamp.time }}
-                  </span>
+                </p>
+                <p class="#F8BBD0--text mb-0 pr-2" style="font-size: 10px">
+                  {{ message.chat.timeStamp.time }}
                 </p>
               </div>
             </v-list-item-subtitle>
-            <v-list-item-subtitle v-else class="message-text">
+            <v-list-item-subtitle v-else class="message-text my-1">
               <div
                 class="py-1 px-2 my-1"
                 style="
@@ -39,23 +52,33 @@
                 "
               >
                 <p
-                  class="mb-0 px-2 #F8BBD0--text"
+                  class="mb-0 px-1 #F8BBD0--text"
                   style="font-size: 10px; font-weight: bold"
                 >
                   ~{{ message.chat.user }}
                 </p>
-                <p class="mb-0 pl-2 pt-1 pr-2" style="font-size: 1rem">
+                <p
+                  class="mb-0 pr-10 pl-3"
+                  style="
+                    font-size: 1rem;
+                    display: inline-block;
+                    white-space: normal;
+                  "
+                >
                   {{ message.chat.text }}
-                  <span class="#F8BBD0--text pl-5" style="font-size: 10px">
-                    {{ message.chat.timeStamp.time }}
-                  </span>
+                </p>
+                <p
+                  class="#F8BBD0--text text-right mb-0 pr-2"
+                  style="font-size: 10px"
+                >
+                  {{ message.chat.timeStamp.time }}
                 </p>
               </div>
             </v-list-item-subtitle>
           </v-list-item>
         </v-list>
       </v-card-text>
-      <v-card-actions class="message-input">
+      <v-card-actions class="message-input px-4">
         <v-text-field
           :disabled="!selectedRoom"
           v-model="newMessage"
@@ -71,7 +94,7 @@
         </v-btn>
       </v-card-actions>
     </v-card>
-    <v-card v-else class="elevation-2 chat-area-card">
+    <v-card v-else class="elevation-2 chat-area-card px-4">
       <v-card-text class="message-list d-flex align-center justify-center">
         <!-- Adding flexbox classes -->
         <div class="text-center">
@@ -117,6 +140,9 @@ export default {
         this.$emit("sendMessage", this.newMessage);
         this.newMessage = "";
       }
+    },
+    showGroupsOnClick() {
+      this.$emit("showGroupsOnClick", true);
     },
   },
 };

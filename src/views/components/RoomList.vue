@@ -1,5 +1,5 @@
 <template>
-  <v-flex xs12 md3>
+  <v-flex xs12 sm4 md4>
     <v-card class="elevation-2 room-list-card">
       <v-card-title class="primary room-list-title white--text"
         ><span>Groups</span>
